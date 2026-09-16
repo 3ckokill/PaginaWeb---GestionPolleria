@@ -14,7 +14,7 @@ using System.Reflection;
 [assembly: System.Reflection.AssemblyCompanyAttribute("PolleriaLovely")]
 [assembly: System.Reflection.AssemblyConfigurationAttribute("Debug")]
 [assembly: System.Reflection.AssemblyFileVersionAttribute("1.0.0.0")]
-[assembly: System.Reflection.AssemblyInformationalVersionAttribute("1.0.0+deced40a171d92cbba8da629e1d0fca31dea0552")]
+[assembly: System.Reflection.AssemblyInformationalVersionAttribute("1.0.0+ac4d8ee818999719e18e73e9fe07b8e42494337b")]
 [assembly: System.Reflection.AssemblyProductAttribute("PolleriaLovely")]
 [assembly: System.Reflection.AssemblyTitleAttribute("PolleriaLovely")]
 [assembly: System.Reflection.AssemblyVersionAttribute("1.0.0.0")]
