@@ -1,10 +1,4 @@
-<<<<<<< HEAD
-﻿namespace PolleriaLovely.Models
-{
-    public class Insumo
-    {
-=======
-﻿using System.ComponentModel.DataAnnotations;
+using System.ComponentModel.DataAnnotations;
 using System.ComponentModel.DataAnnotations.Schema;
 
 namespace PolleriaLovely.Models
@@ -27,6 +21,6 @@ namespace PolleriaLovely.Models
 
         public int IdProveedor { get; set; }
 
->>>>>>> Implementando-Login
+
     }
 }

@@ -1,12 +1,4 @@
-<<<<<<< HEAD
-﻿namespace PolleriaLovely.Models
-{
-    public class Proveedor
-    {
-
-    }
-=======
-﻿using PolleriaLovely.Models;
+using PolleriaLovely.Models;
 using System.ComponentModel.DataAnnotations;
 using System.ComponentModel.DataAnnotations.Schema;
 
@@ -28,5 +20,5 @@ public class Proveedor
     public bool Estado { get; set; }
 
     public ICollection<Insumo> Insumos { get; set; }
->>>>>>> Implementando-Login
+
 }
