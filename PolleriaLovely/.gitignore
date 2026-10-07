@@ -1,0 +1,14 @@
+# Carpetas de compilación de .NET
+[Bb]in/
+[Oo]bj/
+
+# Archivos temporales de Visual Studio y caché
+.vs/
+*.user
+*.suo
+*.userosscache
+*.sln.docstates
+
+# Caché del compilador y compilación interna
+*.cache
+*.json

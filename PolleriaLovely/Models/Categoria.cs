@@ -7,9 +7,15 @@ namespace PolleriaLovely.Models
     {
         [Key, DatabaseGenerated(DatabaseGeneratedOption.Identity)]
         public int IdCategoria { get; set; }
-
+       
         [Required,StringLength(50)]
+
         public string NombreCategoria { get; set; }
+        [StringLength(200)]
+
+        public string Descripcion { get; set; }
+        [Required]
+        public bool Estado { get; set; }
 
         public ICollection<Producto> Productos { get; set; }
     }
