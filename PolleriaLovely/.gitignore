@@ -11,4 +11,3 @@
 
 # Caché del compilador y compilación interna
 *.cache
-*.json

@@ -1,5 +1,7 @@
-﻿using System.ComponentModel.DataAnnotations;
+﻿using Microsoft.AspNetCore.Mvc.ModelBinding.Validation;
+using System.ComponentModel.DataAnnotations;
 using System.ComponentModel.DataAnnotations.Schema;
+
 
 namespace PolleriaLovely.Models
 {
@@ -9,15 +11,16 @@ namespace PolleriaLovely.Models
         public int IdProducto { get; set; }
         [Required, StringLength(100)]
         public string NombreProducto { get; set; }
-        [Required,StringLength(200)]
+        [StringLength(200)]
 
-        public string Descripcion { get; set; }
+        public string? Descripcion { get; set; }
         [Required]
         public decimal Precio { get; set; }
 
-        public string Estado { get; set; }
-
+        public bool Estado { get; set; }
+        [Required]
         public int IdCategoria { get; set; }
+        [ValidateNever]
         public Categoria Categoria { get; set; }
     }
 }
