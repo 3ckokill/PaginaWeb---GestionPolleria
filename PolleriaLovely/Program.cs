@@ -27,6 +27,17 @@ builder.Services
     });
 
 var app = builder.Build();
+
+// Crear los roles que falten.
+using (var scope = app.Services.CreateScope())
+{
+    var context = scope.ServiceProvider
+        .GetRequiredService<BibliotecaDbContext>();
+
+    await InicializadorDatos.InicializarAsync(context);
+}
+
+// Crear usuario de prueba solo en desarrollo.
 if (app.Environment.IsDevelopment())
 {
     using var scope = app.Services.CreateScope();
@@ -43,7 +54,8 @@ if (app.Environment.IsDevelopment())
     if (!existeUsuario)
     {
         var rol = await context.Roles
-            .FirstOrDefaultAsync(r => r.NombreRol == "Administrador");
+            .FirstOrDefaultAsync(r =>
+                r.NombreRol == "Administrador");
 
         if (rol != null)
         {
