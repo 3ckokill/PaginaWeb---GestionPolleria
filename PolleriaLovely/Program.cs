@@ -20,7 +20,7 @@ builder.Services
     .AddCookie(opciones =>
     {
         opciones.LoginPath = "/Usuario/Login";
-        opciones.AccessDeniedPath = "/Usuario/Login";
+        opciones.AccessDeniedPath = "/Usuario/AccesoDenegado";
         opciones.Cookie.HttpOnly = true;
         opciones.Cookie.IsEssential = true;
         opciones.SlidingExpiration = true;
