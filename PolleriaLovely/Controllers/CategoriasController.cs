@@ -1,3 +1,4 @@
+using Microsoft.AspNetCore.Authorization;
 using Microsoft.AspNetCore.Mvc;
 using Microsoft.EntityFrameworkCore;
 using PolleriaLovely.Models;
@@ -7,6 +8,7 @@ namespace PolleriaLovely.Controllers
 {
     public class CategoriasController : Controller
     {
+        [Authorize(Roles = "Administrador")]
         private readonly BibliotecaDbContext _context;
 
         public CategoriasController(BibliotecaDbContext context)
