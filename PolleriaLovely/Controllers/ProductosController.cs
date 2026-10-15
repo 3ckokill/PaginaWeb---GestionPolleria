@@ -31,7 +31,7 @@ namespace PolleriaLovely.Controllers
             return View(producto);
         }
 
-        public IActionResult Create()
+        public async Task<IActionResult> Create()
         {
             ViewBag.IdCategoria = new SelectList(await _context.Categorias.AsNoTracking().OrderBy(c => c.NombreCategoria).ToListAsync(), "IdCategoria", "NombreCategoria");
             return View(new Producto { Estado = true });
