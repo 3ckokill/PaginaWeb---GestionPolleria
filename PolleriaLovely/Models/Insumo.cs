@@ -21,9 +21,5 @@ namespace PolleriaLovely.Models
 
         public int IdProveedor { get; set; }
 
-<<<<<<< HEAD
-
-=======
->>>>>>> abea245159e7826dad6f3c3f0426a188435c1035
     }
 }
