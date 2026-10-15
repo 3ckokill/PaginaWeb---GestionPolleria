@@ -18,7 +18,7 @@ namespace PolleriaLovely.Controllers
 
         public async Task<IActionResult> Index()
         {
-            return View(await _context.Categorias.ToListAsync());
+            return View(await _context.Categorias.Include(c => c.Productos).AsNoTracking().OrderBy(c => c.NombreCategoria).ToListAsync());
         }
 
         public async Task<IActionResult> Details(int? id)
@@ -29,7 +29,7 @@ namespace PolleriaLovely.Controllers
             return View(categoria);
         }
 
-        public IActionResult Create() => View();
+        public IActionResult Create() => View(new Categoria { Estado = true });
 
         [HttpPost]
         [ValidateAntiForgeryToken]
@@ -77,7 +77,7 @@ namespace PolleriaLovely.Controllers
         public async Task<IActionResult> Delete(int? id)
         {
             if (id == null) return NotFound();
-            var categoria = await _context.Categorias.FirstOrDefaultAsync(m => m.IdCategoria == id);
+            var categoria = await _context.Categorias.Include(c => c.Productos).FirstOrDefaultAsync(m => m.IdCategoria == id);
             if (categoria == null) return NotFound();
             return View(categoria);
         }
@@ -86,9 +86,16 @@ namespace PolleriaLovely.Controllers
         [ValidateAntiForgeryToken]
         public async Task<IActionResult> DeleteConfirmed(int? id)
         {
-            var categoria = await _context.Categorias.FindAsync(id);
-            if (categoria != null) _context.Categorias.Remove(categoria);
+            var categoria = await _context.Categorias.Include(c => c.Productos).FirstOrDefaultAsync(c => c.IdCategoria == id);
+            if (categoria == null) return NotFound();
+            if (categoria.Productos.Count > 0)
+            {
+                TempData["Error"] = $"No se puede eliminar «{categoria.NombreCategoria}» porque tiene {categoria.Productos.Count} producto(s) asociado(s).";
+                return RedirectToAction(nameof(Index));
+            }
+            _context.Categorias.Remove(categoria);
             await _context.SaveChangesAsync();
+            TempData["Mensaje"] = "La categoría se eliminó correctamente.";
             return RedirectToAction(nameof(Index));
         }
 
