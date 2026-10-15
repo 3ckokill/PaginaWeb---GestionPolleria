@@ -19,22 +19,22 @@ namespace PolleriaLovely.Controllers
 
         public async Task<IActionResult> Index()
         {
-            return View(await _context.Productos.ToListAsync());
+            return View(await _context.Productos.Include(p => p.Categoria).AsNoTracking().OrderBy(p => p.NombreProducto).ToListAsync());
         }
 
         public async Task<IActionResult> Details(int? id)
         {
             if (id == null) return NotFound();
             var producto = await _context.Productos
-                .FirstOrDefaultAsync(m => m.IdProducto == id);
+                .Include(p => p.Categoria).FirstOrDefaultAsync(m => m.IdProducto == id);
             if (producto == null) return NotFound();
             return View(producto);
         }
 
         public IActionResult Create()
         {
-            ViewBag.IdCategoria = new SelectList(_context.Categorias, "IdCategoria", "NombreCategoria");
-            return View();
+            ViewBag.IdCategoria = new SelectList(await _context.Categorias.AsNoTracking().OrderBy(c => c.NombreCategoria).ToListAsync(), "IdCategoria", "NombreCategoria");
+            return View(new Producto { Estado = true });
         }
 
         [HttpPost]
@@ -47,7 +47,7 @@ namespace PolleriaLovely.Controllers
                 await _context.SaveChangesAsync();
                 return RedirectToAction(nameof(Index));
             }
-            ViewBag.IdCategoria = new SelectList(_context.Categorias, "IdCategoria", "NombreCategoria", producto.IdCategoria);
+            ViewBag.IdCategoria = new SelectList(await _context.Categorias.AsNoTracking().OrderBy(c => c.NombreCategoria).ToListAsync(), "IdCategoria", "NombreCategoria", producto.IdCategoria);
             return View(producto);
         }
 
@@ -56,7 +56,7 @@ namespace PolleriaLovely.Controllers
             if (id == null) return NotFound();
             var producto = await _context.Productos.FindAsync(id);
             if (producto == null) return NotFound();
-            ViewBag.IdCategoria = new SelectList(_context.Categorias, "IdCategoria", "NombreCategoria", producto.IdCategoria);
+            ViewBag.IdCategoria = new SelectList(await _context.Categorias.AsNoTracking().OrderBy(c => c.NombreCategoria).ToListAsync(), "IdCategoria", "NombreCategoria", producto.IdCategoria);
             return View(producto);
         }
 
@@ -79,14 +79,14 @@ namespace PolleriaLovely.Controllers
                     throw;
                 }
             }
-            ViewBag.IdCategoria = new SelectList(_context.Categorias, "IdCategoria", "NombreCategoria", producto.IdCategoria);
+            ViewBag.IdCategoria = new SelectList(await _context.Categorias.AsNoTracking().OrderBy(c => c.NombreCategoria).ToListAsync(), "IdCategoria", "NombreCategoria", producto.IdCategoria);
             return View(producto);
         }
 
         public async Task<IActionResult> Delete(int? id)
         {
             if (id == null) return NotFound();
-            var producto = await _context.Productos.FirstOrDefaultAsync(m => m.IdProducto == id);
+            var producto = await _context.Productos.Include(p => p.Categoria).FirstOrDefaultAsync(m => m.IdProducto == id);
             if (producto == null) return NotFound();
             return View(producto);
         }

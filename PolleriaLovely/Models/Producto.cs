@@ -14,7 +14,7 @@ namespace PolleriaLovely.Models
         [StringLength(200)]
 
         public string? Descripcion { get; set; }
-        [Required]
+        [Range(typeof(decimal), "0.01", "1000000", ErrorMessage = "El precio debe ser mayor que cero.")]
         public decimal Precio { get; set; }
 
         public bool Estado { get; set; }
