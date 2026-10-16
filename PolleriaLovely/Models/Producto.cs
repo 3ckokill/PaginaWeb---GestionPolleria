@@ -9,16 +9,17 @@ namespace PolleriaLovely.Models
     {
         [Key, DatabaseGenerated(DatabaseGeneratedOption.Identity)]
         public int IdProducto { get; set; }
-        [Required, StringLength(100)]
+        [Required(ErrorMessage = "El nombre del producto es obligatorio.")]
+        [StringLength(100, ErrorMessage = "El nombre del producto no puede superar los 100 caracteres.")]
         public string NombreProducto { get; set; }
-        [StringLength(200)]
+        [StringLength(200, ErrorMessage = "La descripción no puede superar los 200 caracteres.")]
 
         public string? Descripcion { get; set; }
         [Range(typeof(decimal), "0.01", "1000000", ErrorMessage = "El precio debe ser mayor que cero.")]
         public decimal Precio { get; set; }
 
         public bool Estado { get; set; }
-        [Required]
+        [Range(1, int.MaxValue, ErrorMessage = "Debe seleccionar una categoría.")]
         public int IdCategoria { get; set; }
         [ValidateNever]
         public Categoria Categoria { get; set; }

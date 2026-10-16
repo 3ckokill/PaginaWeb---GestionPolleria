@@ -8,10 +8,11 @@ namespace PolleriaLovely.Models
         [Key, DatabaseGenerated(DatabaseGeneratedOption.Identity)]
         public int IdCategoria { get; set; }
        
-        [Required,StringLength(50)]
+        [Required(ErrorMessage = "El nombre de la categoría es obligatorio.")]
+        [StringLength(50, ErrorMessage = "El nombre de la categoría no puede superar los 50 caracteres.")]
 
         public string NombreCategoria { get; set; }
-        [StringLength(200)]
+        [StringLength(200, ErrorMessage = "La descripción no puede superar los 200 caracteres.")]
 
         public string Descripcion { get; set; }
         [Required]

@@ -35,6 +35,7 @@ namespace PolleriaLovely.Controllers
         [ValidateAntiForgeryToken]
         public async Task<IActionResult> Create([Bind("NombreCategoria,Descripcion,Estado")] Categoria categoria)
         {
+            NormalizarErroresCategoria();
             if (ModelState.IsValid)
             {
                 _context.Add(categoria);
@@ -57,6 +58,7 @@ namespace PolleriaLovely.Controllers
         public async Task<IActionResult> Edit(int? id, [Bind("IdCategoria,NombreCategoria,Descripcion,Estado")] Categoria categoria)
         {
             if (id != categoria.IdCategoria) return NotFound();
+            NormalizarErroresCategoria();
             if (ModelState.IsValid)
             {
                 try
@@ -101,5 +103,14 @@ namespace PolleriaLovely.Controllers
 
         private bool CategoriaExists(int? id) =>
             _context.Categorias.Any(e => e.IdCategoria == id);
+
+        private void NormalizarErroresCategoria()
+        {
+            if (string.IsNullOrWhiteSpace(Request.Form[nameof(Categoria.NombreCategoria)]))
+            {
+                ModelState.Remove(nameof(Categoria.NombreCategoria));
+                ModelState.AddModelError(nameof(Categoria.NombreCategoria), "El nombre de la categoría es obligatorio.");
+            }
+        }
     }
 }
