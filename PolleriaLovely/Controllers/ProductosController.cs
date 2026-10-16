@@ -41,6 +41,7 @@ namespace PolleriaLovely.Controllers
         [ValidateAntiForgeryToken]
         public async Task<IActionResult> Create([Bind("NombreProducto,Descripcion,Precio,Estado,IdCategoria")] Producto producto)
         {
+            NormalizarErrorPrecio();
             if (ModelState.IsValid)
             {
                 _context.Add(producto);
@@ -65,6 +66,7 @@ namespace PolleriaLovely.Controllers
         public async Task<IActionResult> Edit(int id, [Bind("IdProducto,NombreProducto,Descripcion,Precio,Estado,IdCategoria")] Producto producto)
         {
             if (id != producto.IdProducto) return NotFound();
+            NormalizarErrorPrecio();
             if (ModelState.IsValid)
             {
                 try
@@ -103,5 +105,18 @@ namespace PolleriaLovely.Controllers
 
         private bool ProductoExists(int? idproduto) =>
             _context.Productos.Any(e => e.IdProducto == idproduto);
+
+        private void NormalizarErrorPrecio()
+        {
+            if (!ModelState.ContainsKey(nameof(Producto.Precio))) return;
+            ModelState.Remove(nameof(Producto.Precio));
+            if (Request.Form.TryGetValue(nameof(Producto.Precio), out var valor) &&
+                decimal.TryParse(valor, out var precio) && precio >= 0.01m && precio <= 1000000m)
+            {
+                ModelState.SetModelValue(nameof(Producto.Precio), new Microsoft.AspNetCore.Mvc.ModelBinding.ValueProviderResult(valor));
+                return;
+            }
+            ModelState.AddModelError(nameof(Producto.Precio), "Ingrese un precio válido mayor que cero.");
+        }
     }
 }
