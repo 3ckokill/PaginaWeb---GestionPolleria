@@ -1,5 +1,6 @@
 using Microsoft.AspNetCore.Authorization;
 using Microsoft.AspNetCore.Mvc;
+using Microsoft.AspNetCore.Mvc.ModelBinding;
 using Microsoft.EntityFrameworkCore;
 using PolleriaLovely.Models;
 using PolleriaLovely.Data;
@@ -45,7 +46,10 @@ namespace PolleriaLovely.Controllers
             NormalizarErrorPrecio(producto);
             NormalizarErrorCategoria(producto);
             if (ModelState.IsValid && !await CategoriaExiste(producto.IdCategoria))
+            {
                 ModelState.AddModelError(nameof(Producto.IdCategoria), "La categoría seleccionada no es válida.");
+                ModelState[nameof(Producto.IdCategoria)].ValidationState = ModelValidationState.Invalid;
+            }
             if (ModelState.IsValid)
             {
                 _context.Add(producto);
@@ -73,7 +77,10 @@ namespace PolleriaLovely.Controllers
             NormalizarErrorPrecio(producto);
             NormalizarErrorCategoria(producto);
             if (ModelState.IsValid && !await CategoriaExiste(producto.IdCategoria))
+            {
                 ModelState.AddModelError(nameof(Producto.IdCategoria), "La categoría seleccionada no es válida.");
+                ModelState[nameof(Producto.IdCategoria)].ValidationState = ModelValidationState.Invalid;
+            }
             if (ModelState.IsValid)
             {
                 try
@@ -117,30 +124,53 @@ namespace PolleriaLovely.Controllers
         {
             ModelState.Remove(nameof(Producto.Precio));
             var texto = Request.Form[nameof(Producto.Precio)].ToString().Trim();
-            var esPrecioValido = decimal.TryParse(texto, NumberStyles.Number, CultureInfo.CurrentCulture, out var precio) ||
-                decimal.TryParse(texto.Replace(',', '.'), NumberStyles.Number, CultureInfo.InvariantCulture, out precio);
-            if (esPrecioValido && precio >= 0.01m && precio <= 1000000m)
+            ModelState.SetModelValue(nameof(Producto.Precio), new ValueProviderResult(texto));
+            var normalizado = ValidarFormatoPrecio(texto);
+            if (decimal.TryParse(normalizado, NumberStyles.Number, CultureInfo.InvariantCulture, out var precio) &&
+                precio >= 0.01m && precio <= 1000000m)
             {
                 producto.Precio = precio;
-                ModelState.SetModelValue(nameof(Producto.Precio), new Microsoft.AspNetCore.Mvc.ModelBinding.ValueProviderResult(texto));
+                ModelState[nameof(Producto.Precio)].ValidationState = ModelValidationState.Valid;
                 return;
             }
             producto.Precio = 0;
             ModelState.AddModelError(nameof(Producto.Precio), "Ingrese un precio válido mayor que cero.");
+            ModelState[nameof(Producto.Precio)].ValidationState = ModelValidationState.Invalid;
+        }
+
+        private static string ValidarFormatoPrecio(string texto)
+        {
+            var valor = texto.Replace(" ", "");
+            int ultimaComa = valor.LastIndexOf(',');
+            int ultimoPunto = valor.LastIndexOf('.');
+            if (ultimaComa >= 0 && ultimoPunto >= 0)
+                return ultimaComa > ultimoPunto
+                    ? valor.Replace(".", "").Replace(',', '.')
+                    : valor.Replace(",", "");
+            if (ultimaComa >= 0)
+            {
+                var partes = valor.Split(',');
+                return partes.Length == 2 && partes[1].Length != 3
+                    ? valor.Replace(',', '.')
+                    : valor;
+            }
+            return valor;
         }
 
         private void NormalizarErrorCategoria(Producto producto)
         {
             ModelState.Remove(nameof(Producto.IdCategoria));
             var texto = Request.Form[nameof(Producto.IdCategoria)].ToString().Trim();
+            ModelState.SetModelValue(nameof(Producto.IdCategoria), new ValueProviderResult(texto));
             if (int.TryParse(texto, out var categoriaId) && categoriaId > 0)
             {
                 producto.IdCategoria = categoriaId;
-                ModelState.SetModelValue(nameof(Producto.IdCategoria), new Microsoft.AspNetCore.Mvc.ModelBinding.ValueProviderResult(texto));
+                ModelState[nameof(Producto.IdCategoria)].ValidationState = ModelValidationState.Valid;
                 return;
             }
             producto.IdCategoria = 0;
             ModelState.AddModelError(nameof(Producto.IdCategoria), "Debe seleccionar una categoría.");
+            ModelState[nameof(Producto.IdCategoria)].ValidationState = ModelValidationState.Invalid;
         }
 
         private Task<bool> CategoriaExiste(int idCategoria) =>
