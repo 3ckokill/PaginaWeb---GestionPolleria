@@ -19,7 +19,8 @@ namespace PolleriaLovely.Models
         public decimal Precio { get; set; }
 
         public bool Estado { get; set; }
-        [Range(1, int.MaxValue, ErrorMessage = "Debe seleccionar una categoría.")]
+        [Required(ErrorMessage = "Debe seleccionar una categoría.")]
+        [Range(1, int.MaxValue, ErrorMessage = "Debe seleccionar una categoría válida.")]
         public int IdCategoria { get; set; }
         [ValidateNever]
         public Categoria Categoria { get; set; }
