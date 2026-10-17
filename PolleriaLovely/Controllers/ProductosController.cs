@@ -42,6 +42,7 @@ namespace PolleriaLovely.Controllers
         public async Task<IActionResult> Create([Bind("NombreProducto,Descripcion,Precio,Estado,IdCategoria")] Producto producto)
         {
             NormalizarErrorPrecio();
+            NormalizarErrorCategoria();
             if (ModelState.IsValid)
             {
                 _context.Add(producto);
@@ -67,6 +68,7 @@ namespace PolleriaLovely.Controllers
         {
             if (id != producto.IdProducto) return NotFound();
             NormalizarErrorPrecio();
+            NormalizarErrorCategoria();
             if (ModelState.IsValid)
             {
                 try
@@ -118,6 +120,19 @@ namespace PolleriaLovely.Controllers
             }
             ModelState.AddModelError(nameof(Producto.Precio), "Ingrese un precio válido mayor que cero.");
         }
+
+        private void NormalizarErrorCategoria()
+        {
+            ModelState.Remove(nameof(Producto.IdCategoria));
+            if (Request.Form.TryGetValue(nameof(Producto.IdCategoria), out var valor) &&
+                int.TryParse(valor, out var categoriaId) && categoriaId > 0)
+            {
+                ModelState.SetModelValue(nameof(Producto.IdCategoria), new Microsoft.AspNetCore.Mvc.ModelBinding.ValueProviderResult(valor));
+                return;
+            }
+            ModelState.AddModelError(nameof(Producto.IdCategoria), "Debe seleccionar una categoría.");
+        }
     }
 }
+
 
