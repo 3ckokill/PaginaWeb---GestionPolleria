@@ -6,60 +6,59 @@ Instrucciones permanentes para trabajar en **PolleriaLovely**, el sistema de ges
 
 - C# / ASP.NET Core **MVC** (.NET 10, `Nullable` habilitado, `ImplicitUsings` habilitado)
 - **Entity Framework Core 10** (`Microsoft.EntityFrameworkCore.SqlServer` 10.0.12)
-- **SQL Server**: instancia `.\SQLEXPRESS01`, base de datos `PolleriaLovely`
-- La cadena de conexión vive en `appsettings.json` → `ConnectionStrings:DefaultConnection`
-- Bootstrap y jQuery incluidos en `wwwroot/lib` (no descargar librerías nuevas sin necesidad)
+- **SQL Server**; la cadena de conexión vive en `appsettings.json` → `ConnectionStrings:DefaultConnection` y puede variar entre equipos.
+- Bootstrap y jQuery incluidos en `wwwroot/lib` (no descargar librerías nuevas sin necesidad).
 
 ## Estructura del proyecto
 
 ```
 PolleriaLovely/
-├── Controllers/      # Administrador, Cajero, Home, Mozo, Usuario
-├── Data/             # BibliotecaDbContext (nombre heredado de la plantilla)
+├── Controllers/      # Administrador, Cajero, Categorias, Home, Mozo, Productos, Usuario
+├── Data/             # BibliotecaDbContext e InicializadorDatos
 ├── Migrations/       # Migraciones EF Core
-├── Models/           # Entidades: Categoria, Insumo, Producto, Proveedor, Rol, Usuario, ErrorViewModel
+├── Models/           # Categoria, Insumo, Producto, Proveedor, Rol, Usuario, ErrorViewModel
 ├── ViewModels/       # ViewModels (ej. LoginViewModel)
-├── Views/            # Vistas Razor (Home, Shared)
-├── Properties/       # launchSettings.json (puertos 56587/56588)
+├── Views/            # Vistas Razor
+├── Properties/       # launchSettings.json
 ├── wwwroot/          # css, js, lib
-├── Program.cs        # Registro de servicios y rutas
+├── Program.cs        # Servicios, autenticación, inicialización y rutas
 └── appsettings.json  # Conexión a BD y logging
 ```
 
 ## Reglas de trabajo
 
-1. **Nombres en español** para clases, propiedades, controladores, vistas y variables siempre que sea razonable (patrón del proyecto: `NombreProducto`, `IdCategoria`, `Estado`, etc.).
-2. **Respeta la arquitectura MVC** y la estructura existente; sigue el estilo de los archivos vecinos (atributos `[Key, DatabaseGenerated(Identity)]`, `[Required, StringLength(n)]`, configuración fluent API en `OnModelCreating`).
+1. **Nombres en español** para clases, propiedades, controladores, vistas y variables siempre que sea razonable.
+2. **Respeta la arquitectura MVC** y la estructura existente; sigue el estilo de los archivos vecinos.
 3. **Modifica únicamente los archivos necesarios** para cada tarea; no toques archivos fuera del alcance pedido.
-4. **Avanza en etapas pequeñas**: una responsabilidad por tarea (models, relación, migración, controlador, vista…).
-5. **Compila después de cada cambio de código** cuando sea posible (`dotnet build`; en este entorno WSL: `"/mnt/c/Program Files/dotnet/dotnet.exe" build`). Debe terminar en **0 errores**. Las advertencias CS8618 (propiedades no nulas sin inicializar) ya son un patrón existente del proyecto.
-6. **No ejecutes migraciones (`dotnet ef migrations add/...`) sin que se pida explícitamente**; cuando se pidan, una sola migración por cambio de modelo.
+4. **Avanza en etapas pequeñas**: una responsabilidad por tarea.
+5. **Compila después de cada cambio de código** cuando sea posible (`dotnet build`). Debe terminar en **0 errores**. Si no se ejecutaron las pruebas, indicarlo explícitamente.
+6. **No ejecutes migraciones** (`dotnet ef migrations add/...`) sin que se pida explícitamente.
 7. **Explica brevemente qué modificaste y por qué** al terminar cada tarea, para facilitar el aprendizaje.
 8. **No inventes requisitos** ni hagas refactorizaciones innecesarias; si falta información, pregunta antes de asumir.
-9. **No asumas que se conoce el proyecto APPLOGIN del docente.** Si hay que seguir detalles de sus guías, primero revisa los archivos disponibles del repositorio antes de decidir.
+9. Antes de editar, revisa los archivos actuales y la rama de trabajo. No hagas merge a `main` sin autorización explícita.
 
 ## Seguridad
 
-- **Nunca almacenar contraseñas en texto plano**: guardar solo hash (implementación pendiente en la etapa de autenticación).
-- No commitear secretos; `appsettings.json` solo debe contener valores no sensibles (autenticación de Windows / `Trusted_Connection`).
+- Nunca almacenar contraseñas de usuarios en texto plano: guardar únicamente el hash generado por `IPasswordHasher<Usuario>`.
+- Las cuentas de prueba y sus contraseñas conocidas solo pueden usarse en entorno **Development**. No habilitar esta inicialización en producción ni reutilizar estas contraseñas.
+- No commitear secretos reales; `appsettings.json` no debe contener credenciales sensibles.
 
-## Orden general de trabajo
+## Estado actual (actualizar cada vez que se modifique el proyecto)
 
-Cuando corresponda, seguir este orden:
+- **Rama de trabajo:** `sprint1-seguridad`.
+- **Pull Request:** [#1 — Sprint 1: seguridad y autorización por roles](https://github.com/3ckokill/PaginaWeb---GestionPolleria/pull/1). No fusionar hasta completar las pruebas.
+- **Autenticación:** `UsuarioController` verifica la contraseña con `PasswordHasher<Usuario>`, genera claims de nombre y rol y crea una cookie de autenticación. `Program.cs` configura `LoginPath = /Usuario/Login`, `AccessDeniedPath = /Usuario/AccesoDenegado` y el middleware de autenticación/autorización.
+- **Protección por rol:** `ProductosController`, `CategoriasController` y `AdministradorController` requieren `Administrador`; `CajeroController` requiere `Cajero`; `MozoController` requiere `Mozo`.
+- **Inicialización:** `Data/InicializadorDatos.cs` crea los roles que falten: Administrador, Cajero y Mozo.
+- **Cuentas de prueba en Development:** `Program.cs` crea cada usuario solo si no existe y si encuentra su rol; las contraseñas se almacenan como hash.
+  - Administrador: usuario `admin.prueba`, contraseña inicial `LovelyDemo2026!`.
+  - Cajero: usuario `cajero.prueba`, contraseña inicial `LovelyCaja2026!`.
+  - Mozo: usuario `mozo.prueba`, contraseña inicial `LovelyMozo2026!`.
+  - Si una cuenta ya existía, el inicializador no cambia su contraseña ni su rol. Estas credenciales son solo para pruebas locales; no usar en producción.
+- **Vistas:** existen vistas para login, acceso denegado y los paneles de Administrador y Cajero; Productos y Categorías tienen vistas CRUD. El menú compartido muestra Home/Privacy y, para una sesión autenticada, el usuario, el rol y el botón de cierre de sesión; aún no hay enlaces de navegación a todos los módulos.
+- **Base de datos/migraciones:** existen migraciones en `Migrations/`; no se añadió ninguna migración en esta tarea.
+- **Estado de validación:** el usuario confirmó manualmente que el CRUD de Categorías funciona correctamente: creación, edición, eliminación segura, conservación de `Estado`, validaciones y mejoras visuales. También confirmó que la interfaz mejorada es clara. El conflicto de `Models/Insumo.cs` fue resuelto en el equipo local. En esta corrección se revisó el flujo real de creación de Productos y se reforzó la validación de categoría tanto en navegador como en servidor.
+- **Última modificación documentada:** Sprint 2, paso 2: se eliminó el parcial `Views/Productos/_Form.cshtml` y se dejaron formularios independientes en `Create.cshtml` y `Edit.cshtml`, conservando la interfaz, validaciones y el identificador necesario para editar. No se añadieron migraciones.
+- **Validación posterior:** `dotnet build SOL_PolleriaLovely.slnx --no-restore` debe finalizar con 0 errores. Las advertencias conocidas de `System.Security.Cryptography.Pkcs` 9.0.11 no bloquean la compilación. También se debe comprobar manualmente Crear y Editar con una categoría válida y el mensaje al dejarla vacía.
 
-1. **Models** (entidades con atributos de validación)
-2. **DbContext y relaciones** (`Data/BibliotecaDbContext.cs`: DbSets + fluent API)
-3. **Configuración** (`appsettings.json`, `Program.cs`)
-4. **Migraciones** (solo cuando se solicite)
-5. **ViewModels** (con validaciones `[Required]` etc.)
-6. **Controllers**
-7. **Views**
-8. **Pruebas**
 
-## Estado actual (última revisión)
-
-- Modelos `Rol` y `Usuario` completos, relacionados 1‑a‑muchos mediante `IdRol` (FK) configurado en `BibliotecaDbContext`.
-- DbSets `Roles` y `Usuarios` registrados; migraciones `mg1` (vacía) y `mg2` (tablas `Roles`, `Usuarios`) presentes en `Migrations/`.
-- `ViewModels/LoginViewModel.cs` creado con `NombreUsuario` y `Contraseña` (`[Required]`).
-- Pendiente del flujo de autenticación: hash de contraseñas, controlador/login de acceso y vistas.
-- Dato a alinear: `Usuario.Contrasena` (sin ñ) vs `LoginViewModel.Contraseña` (con ñ).
