@@ -4,6 +4,7 @@ using Microsoft.EntityFrameworkCore;
 using PolleriaLovely.Models;
 using PolleriaLovely.Data;
 using Microsoft.AspNetCore.Mvc.Rendering;
+using System.Globalization;
 
 namespace PolleriaLovely.Controllers
 {
@@ -41,8 +42,10 @@ namespace PolleriaLovely.Controllers
         [ValidateAntiForgeryToken]
         public async Task<IActionResult> Create([Bind("NombreProducto,Descripcion,Precio,Estado,IdCategoria")] Producto producto)
         {
-            NormalizarErrorPrecio();
-            NormalizarErrorCategoria();
+            NormalizarErrorPrecio(producto);
+            NormalizarErrorCategoria(producto);
+            if (ModelState.IsValid && !await CategoriaExiste(producto.IdCategoria))
+                ModelState.AddModelError(nameof(Producto.IdCategoria), "La categoría seleccionada no es válida.");
             if (ModelState.IsValid)
             {
                 _context.Add(producto);
@@ -67,8 +70,10 @@ namespace PolleriaLovely.Controllers
         public async Task<IActionResult> Edit(int id, [Bind("IdProducto,NombreProducto,Descripcion,Precio,Estado,IdCategoria")] Producto producto)
         {
             if (id != producto.IdProducto) return NotFound();
-            NormalizarErrorPrecio();
-            NormalizarErrorCategoria();
+            NormalizarErrorPrecio(producto);
+            NormalizarErrorCategoria(producto);
+            if (ModelState.IsValid && !await CategoriaExiste(producto.IdCategoria))
+                ModelState.AddModelError(nameof(Producto.IdCategoria), "La categoría seleccionada no es válida.");
             if (ModelState.IsValid)
             {
                 try
@@ -108,30 +113,38 @@ namespace PolleriaLovely.Controllers
         private bool ProductoExists(int? idproduto) =>
             _context.Productos.Any(e => e.IdProducto == idproduto);
 
-        private void NormalizarErrorPrecio()
+        private void NormalizarErrorPrecio(Producto producto)
         {
-            if (!ModelState.ContainsKey(nameof(Producto.Precio))) return;
             ModelState.Remove(nameof(Producto.Precio));
-            if (Request.Form.TryGetValue(nameof(Producto.Precio), out var valor) &&
-                decimal.TryParse(valor, out var precio) && precio >= 0.01m && precio <= 1000000m)
+            var texto = Request.Form[nameof(Producto.Precio)].ToString().Trim();
+            var esPrecioValido = decimal.TryParse(texto, NumberStyles.Number, CultureInfo.CurrentCulture, out var precio) ||
+                decimal.TryParse(texto.Replace(',', '.'), NumberStyles.Number, CultureInfo.InvariantCulture, out precio);
+            if (esPrecioValido && precio >= 0.01m && precio <= 1000000m)
             {
-                ModelState.SetModelValue(nameof(Producto.Precio), new Microsoft.AspNetCore.Mvc.ModelBinding.ValueProviderResult(valor));
+                producto.Precio = precio;
+                ModelState.SetModelValue(nameof(Producto.Precio), new Microsoft.AspNetCore.Mvc.ModelBinding.ValueProviderResult(texto));
                 return;
             }
+            producto.Precio = 0;
             ModelState.AddModelError(nameof(Producto.Precio), "Ingrese un precio válido mayor que cero.");
         }
 
-        private void NormalizarErrorCategoria()
+        private void NormalizarErrorCategoria(Producto producto)
         {
             ModelState.Remove(nameof(Producto.IdCategoria));
-            if (Request.Form.TryGetValue(nameof(Producto.IdCategoria), out var valor) &&
-                int.TryParse(valor, out var categoriaId) && categoriaId > 0)
+            var texto = Request.Form[nameof(Producto.IdCategoria)].ToString().Trim();
+            if (int.TryParse(texto, out var categoriaId) && categoriaId > 0)
             {
-                ModelState.SetModelValue(nameof(Producto.IdCategoria), new Microsoft.AspNetCore.Mvc.ModelBinding.ValueProviderResult(valor));
+                producto.IdCategoria = categoriaId;
+                ModelState.SetModelValue(nameof(Producto.IdCategoria), new Microsoft.AspNetCore.Mvc.ModelBinding.ValueProviderResult(texto));
                 return;
             }
+            producto.IdCategoria = 0;
             ModelState.AddModelError(nameof(Producto.IdCategoria), "Debe seleccionar una categoría.");
         }
+
+        private Task<bool> CategoriaExiste(int idCategoria) =>
+            _context.Categorias.AnyAsync(c => c.IdCategoria == idCategoria);
     }
 }
 
